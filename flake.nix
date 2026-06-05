@@ -15,7 +15,6 @@
         devShells.default = pkgs.mkShell {
           packages = [
             pkgs.php
-            pkgs.git
           ];
 
           shellHook = ''
