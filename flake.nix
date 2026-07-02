@@ -28,13 +28,18 @@
             mkdir -p $out/libexec/arcanist
             cp -a . $out/libexec/arcanist
 
-            # Expose the 'arc' binary to the standard bin directory
-            mkdir -p $out/bin
-            ln -s $out/libexec/arcanist/bin/arc $out/bin/arc
-
-            # Wrap the binary so that it ALWAYS has access to this specific
+            # Wrap the 'arc' binary so it ALWAYS has access to this specific
             # version of PHP, regardless of the user's system environment.
-            wrapProgram $out/bin/arc \
+            #
+            # We point makeWrapper at the real script (still named "arc")
+            # instead of wrapping it in place. Arcanist selects its toolset
+            # from basename(argv[0]) (see ArcanistRuntime::newToolset), and
+            # bin/arc is a "#!/usr/bin/env php" shebang script: the kernel
+            # passes the exec'd pathname to PHP as argv[0], ignoring exec -a.
+            # wrapProgram would rename the target to ".arc-wrapped", so PHP
+            # would see basename ".arc-wrapped" and reject the toolset.
+            mkdir -p $out/bin
+            makeWrapper $out/libexec/arcanist/bin/arc $out/bin/arc \
               --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.php ]}
 
             runHook postInstall
